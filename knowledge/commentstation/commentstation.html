@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Comments</title>
+
+    <link rel="stylesheet" href="css/semantic.css" type="text/css" />
+    <link rel="stylesheet" href="css/zyComment.css" type="text/css" />
+
+    <style type="text/css" media="print, screen">
+        label {
+            font-weight: bold;
+        }
+        
+        a {
+            font-family: "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+        
+        #articleComment {
+            width: 600px;
+            margin: 0 auto;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="articleComment"></div>
+
+    <script type="text/javascript" src="js/jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="js/zyComment.js"></script>
+
+    <script type="text/javascript">
+        var agoComment = [
+            {
+                "id": 1,
+                "userName": "meow",
+                "time": "2016-02-02",
+                "sortID": 0,
+                "content": "First Comment"
+            },
+            {
+                "id": 2,
+                "userName": "wooof",
+                "time": "2016-02-02",
+                "sortID": 0,
+                "content": "Second Comment"
+            },
+            {
+                "id": 3,
+                "userName": "Administrator",
+                "time": "2016-02-02",
+                "sortID": 1,
+                "content": "Reply for the First Comment"
+            },
+            {
+                "id": 4,
+                "userName": "Administrator",
+                "time": "2016-02-02",
+                "sortID": 2,
+                "content": "Reply for the Second Comment"
+            },
+            {
+                "id": 5,
+                "userName": "chiuic",
+                "time": "2016-02-02",
+                "sortID": 0,
+                "content": "Third Comment"
+            },
+            {
+                "id": 6,
+                "userName": "sliiider",
+                "time": "2016-02-02",
+                "sortID": 4,
+                "content": "Reply for the Second Comment"
+            },
+		                  ];
+        $("#articleComment").zyComment({
+            "width": "355",
+            "height": "33",
+            "agoComment": agoComment,
+            "callback": function (comment) {
+                console.info("fillrepliedcomment：");
+                console.info(comment);
+
+                // add new comment
+                $("#articleComment").zyComment("setCommentAfter", {
+                    "id": 123,
+                    "name": "name",
+                    "content": "content",
+                    "time": "2016-02-14"
+                });
+
+            }
+        });
+    </script>
+
+</body>
+
+</html>
