@@ -4,138 +4,175 @@ var app = express();
 var fs = require("fs");
 var bodyParser = require('body-parser');
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
-app.engine('handlebars', handlebars({defaultLayout: 'main'}));
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
+app.engine('handlebars', handlebars({
+    defaultLayout: 'main'
+}));
 app.set('view engine', 'handlebars');
 //ignore above. this is just setup for express, handlebars, and bodyParser(bodyParser needed for the post)
 
 
-
-
-// functions above read the tweet arrays out of flat storage
-
-var tweetArray;
-
-fs.readFile('tweetArray.txt', function (err, data) {
+var questions;
+//opens questions array file
+fs.readFile('questionsArray.txt', function (err, data) {
     if (err) {
         console.log(err);
         return
     }
-    var a = JSON.parse(data);
-    console.log("tweet array successfully loaded", a)
-    tweetArray = a;
+    questions = JSON.parse(data);
 });
 
-var tweetUniqueId; 
-
-fs.readFile('tweetId.txt', function (err, data) {
+var users;
+//opens user file
+fs.readFile('userArray.txt', function (err, data) {
     if (err) {
         console.log(err);
         return
     }
-    var a = parseInt(data);
-    console.log('tweet id start point successfully loaded', a)
-    tweetUniqueId = a;
-});;
-
-//renders the page on the home screen load
-app.get('/', function (req, res) {
-    renderTweets(res);
+    users = JSON.parse(data);
 });
 
-function renderTweets(res) {
-    res.render("home", {  
-        tweets: tweetArray
-    });
-}
-
-
-
-
-
-
-//Creates and displays a tweet!
-app.post('/tweet', function (req, res) {
-    console.log(req);
-    var tweet = new Tweet(req.body.name, req.body.message, req.body.viewers)
-    tweetArray.unshift(tweet);
-    saveTweetArray();
-    res.send(tweet);
+//adding new question post event
+app.post('/question', function (req, res) {
+    var question = req.body;
+    question.userId = generateUniqueId();
+    questions.push(question);
+    saveQuestions();
+    res.send(question);
 });
 
+//adding new comment post event
+app.post('/addComment', function (req, res) {
+    var newComment = req.body;
+    newComment.commentId = generateUniqueId();
+    questions[findQuestion(newComment.qId)].comment.push(newComment);
+    saveQuestions();
+    res.send(newComment);
+});
 
-// creates tweet objects
-function Tweet(name, message, viewers) {
-    this.id = tweetId();
-    this.name = name;
-    this.message = message;
-    this.viewers = viewers;
-    this.likedCount = 0;
-}
+//adding new like post event
+app.post('/addLike', function (req, res) {
 
-//incriments the tweet id so that it always has a unique id
-function tweetId() {
-    if (tweetUniqueId == undefined) {
-        tweetUniqueId = 0
-    }
-    tweetUniqueId++;
-    fs.writeFile("tweetId.txt", tweetUniqueId, function(err){
-        if(err) {console.log(err);} 
-  else {
-    console.log("tweet id saved to: tweetId.txt");
-  }})
-    return tweetUniqueId;
-}
+    var numOfLikes;
+    var myIndex;
+    var notLiked = true;
+    var currentQ = req.body.qId;
+    var currentC = req.body.commentId;
+    var currentU = req.body.userId;
+    var questionIndex = findQuestion(currentQ);
+    var currentULA = questions[questionIndex].userLiked //userLiked array for specific question
 
-// saves tweet to flat file storage
-function saveTweetArray(){
-    fs.writeFile("tweetArray.txt", JSON.stringify(tweetArray), function(err) {
-  if(err) {
-        console.log(err);
-  } 
-  else {
-    console.log("tweet array sucessfully updated in DB");
-  }})
-}
-
-//increments liked count and then responds to the web page with that count - ajax request
-app.get('/liked', function (req, res) {
-    tweetIdentity = req.query.id;
-    var responseText;
-    for (var i = 0; i < tweetArray.length; i++) {
-        if (tweetArray[i].id == tweetIdentity) {
-            tweetArray[i].likedCount++;
-            responseText = tweetArray[i].likedCount
+    for (var i = 0; i < questions[questionIndex].comment.length; i++) {
+        if (currentC == questions[questionIndex].comment[i].commentId) {
+            myIndex = i;
         }
     }
-    saveTweetArray();
-    res.send(responseText.toString());
-});
 
-
-
-
-
-
-
-
-
-//delets the tweet out of our database
-app.get('/delete', function (req, res) {
-    tweetIdentity = req.query.id;
-    for (var i = 0; i < tweetArray.length; i++) {
-        if (tweetArray[i].id == tweetIdentity) {
-            tweetArray.splice(i, 1)
+    for (var i = 0; i < currentULA.length; i++) {
+        if (currentULA[i] == currentU) {
+            notLiked = false;
         }
     }
-    saveTweetArray();
-    console.log('tweet'+tweetIdentity+'deleted')
-    res.send("tweet "+ tweetIdentity +" deleted");
+
+    if (notLiked) {
+        currentULA.push(currentU);
+        questions[questionIndex].userLiked = currentULA;
+        questions[questionIndex].comment[myIndex].likedCount += 1;
+    }
+    saveQuestions();
+    res.send(questions[questionIndex].comment[myIndex].likedCount);
 });
 
+//adding  new user post event
+app.post('/createUser', function (req, res) {
+    var user = req.body;
+    if (checkUniqueUsers(user)) {
+        user.userId = generateUniqueId();
+        users.push(user);
+        saveUsers();
+        res.send(user);
+    } else {
+        res.send(false)
+    }
+});
 
+//login post event
+app.post('/login', function (req, res) {
+    var user = req.body;
+    if (validateUser(user)) {
+        res.send(users[myIndex]);
+    } else {
+        res.send(false)
+    }
+});
 
+//generates uniqueid
+function generateUniqueId() {
+    uniqueId++;
+    fs.writeFile("uniqueId.txt", uniqueId, function (err) {
+        if (err) {
+            console.log(err);
+        } else {
+            console.log("uniqueId id saved to: uniqueId.txt");
+        }
+    })
+    return uniqueId;
+}
 
+//given question id finds position of given question in question array
+function findQuestion(questionId) {
+    var myIndex;
+    for (var i = 0; i < questions.length; i++) {
+        if (questionId == questions[i].qId) {
+            myIndex = i;
+        }
+    }
+    return myIndex;
+}
+
+//saves questions in file
+function saveQuestions() {
+    fs.writeFile("questionsArray.txt", JSON.stringify(questions), function (err) {
+        if (err) {
+            console.log(err)
+            return;
+        } else {
+            console.log("questions saved succesfully");
+        }
+    })
+}
+
+//checks to see that given user email doesn't already exist in users array
+function checkUniqueUsers(newUserObject) {
+    var isUnique = true;
+    //function that reads from filestorage and returns the array of users
+    for (var i = 0; i < users.length; i++) {
+        if (users[i].email == newUserObject.email) {
+            isUnique = false;
+        }
+    }
+    return isUnique;
+}
+
+//checks that given email and password matches what it is users array
+function validateUser(user) {
+    //function that reads from filestorage and returns the array of users
+    var myIndex;
+    var isValid = false;
+    for (var i = 0; i < users.length; i++) {
+        if (users[i].email == user.body.email && users[i].password == user.body.password) {
+            myIndex = i;
+            isValid = true;
+        }
+    }
+    if (isValid == true) {
+        return myIndex;
+    } else if (isValid == false) {
+        return false;
+    }
+});
 
 // ignore these
 
