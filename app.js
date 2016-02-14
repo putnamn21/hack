@@ -172,7 +172,7 @@ function validateUser(user) {
     } else if (isValid == false) {
         return false;
     }
-});
+};
 
 // ignore these
 
