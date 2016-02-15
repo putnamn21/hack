@@ -1,0 +1,71 @@
+body {
+    background-image:url(../images/zen-wallpaper.jpg);
+    color: #e8e8e8;
+    font: "Helvetica Neue", "HelveticaNeue", "Helvetica", "Arial", sans-serif;
+}
+hr {
+    border-color: #2f2f2f;
+    margin: 5px 0 5px 0;
+}
+.header {
+    padding: 100px 0 100px 0;
+}
+#sel1 {
+max-width: 150px;
+}
+
+.question-area {
+    background-color:rgba(255, 255, 255, 0.63);
+    border-radius: 5px;
+    padding: 15px;
+    color: black;
+    margin-bottom: 100px;
+}
+.question {
+   background-color:rgba(255, 255, 255, 0.81);
+   border-radius: 5px;
+   margin: 5px;
+   padding: 0 10px 0 10px;
+   width: 100%;
+   height: 100%;
+   position:inherit;
+}
+.subject{
+    display: inline-block;
+    left: 5px;
+}
+.userName {
+    position: absolute;
+    right: 15px;
+    top: 0px;
+}
+.comment {
+  margin: 5% 0 5% 10%;
+  padding: 0 10px 0 10px;
+  border: 1px solid black;
+  border-radius: 3px;
+  position: inherit;
+  background-color: rgba(240, 217, 90, 0.36);
+}
+.like-group {
+  position: absolute;
+    right: 10px;
+    top: 8px;  
+}
+.like-group .glyphicon {
+    font-size: 18px;
+}
+.badge {
+    margin-top: -7px;
+}
+.comment-form {
+  margin: 5% 0 5% 0;
+  padding: 0 10px 10px 10px;
+  border: 1px solid black;
+  border-radius: 3px;
+  position: inherit;
+  background-color: rgba(240, 217, 90, 0.36);
+}
+.comment-form submit {
+    margin-top: 7px;
+}

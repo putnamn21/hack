@@ -34,12 +34,24 @@ fs.readFile('userArray.txt', function (err, data) {
     users = JSON.parse(data);
 });
 
+//opens unique id file
+var uniqueId;
+fs.readFile('uniqueId.txt', function (err, data) {
+    if (err) {
+        console.log(err);
+        return
+    }
+    uniqueId = data;
+});
+
 //adding new question post event
 app.post('/question', function (req, res) {
+    console.log("question submitted")
     var question = req.body;
     question.userId = generateUniqueId();
     questions.push(question);
     saveQuestions();
+    console.log("question successfully saved")
     res.send(question);
 });
 
@@ -87,11 +99,14 @@ app.post('/addLike', function (req, res) {
 
 //adding  new user post event
 app.post('/createUser', function (req, res) {
+    console.log("made it into the create user function")
     var user = req.body;
+    console.log(user);
     if (checkUniqueUsers(user)) {
         user.userId = generateUniqueId();
         users.push(user);
         saveUsers();
+        console.log(user);
         res.send(user);
     } else {
         res.send(false)
@@ -101,10 +116,14 @@ app.post('/createUser', function (req, res) {
 //login post event
 app.post('/login', function (req, res) {
     var user = req.body;
-    if (validateUser(user)) {
-        res.send(users[myIndex]);
+    console.log(user);
+    var index = validateUser(user);
+    console.log(index);
+    if (index == "false") {
+         res.send(false)
     } else {
-        res.send(false)
+        console.log(users[index]);
+        res.send(users[index]);
     }
 });
 
@@ -144,6 +163,18 @@ function saveQuestions() {
     })
 }
 
+//saves users in file
+function saveUsers() {
+    fs.writeFile("userArray.txt", JSON.stringify(users), function (err) {
+        if (err) {
+            console.log(err)
+            return;
+        } else {
+            console.log("questions saved succesfully");
+        }
+    })
+}
+
 //checks to see that given user email doesn't already exist in users array
 function checkUniqueUsers(newUserObject) {
     var isUnique = true;
@@ -162,17 +193,36 @@ function validateUser(user) {
     var myIndex;
     var isValid = false;
     for (var i = 0; i < users.length; i++) {
-        if (users[i].email == user.body.email && users[i].password == user.body.password) {
+        console.log("looping");
+        if (users[i].email == user.email && users[i].password == user.password) {
             myIndex = i;
             isValid = true;
+            console.log(myIndex, "in validateUser function");
         }
     }
     if (isValid == true) {
         return myIndex;
     } else if (isValid == false) {
-        return false;
+        return "false";
     }
 };
+
+app.get('/', function (req, res) {
+    console.log("home page accessed")
+    res.render("home", {
+        question: questions
+    });
+});
+
+app.get('/login', function (req, res) {
+    console.log("home page accessed")
+    res.render("login", {});
+});
+app.get('/register', function (req, res) {
+    console.log("home page accessed")
+    res.render("register", {});
+});
+
 
 // ignore these
 

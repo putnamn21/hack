@@ -1,87 +1,108 @@
-var user;
+var user = JSON.parse(sessionStorage.getItem("user"));
 
-// password submission ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- --
-$("#TBD").click(function(){
+// login submission YAY ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- --
+function submitUserLogin(){
     var formData = {
-        email: $("#TBD").val(),
-        password: $("#TBD").val()
+        email: $("#signup_email").val(),
+        password: $("#signup_password").val()
     }
-    $.post('/userLogin', formData, function(data){
+    $.post('/login', formData, function(data){
       if(data){
-         user = data;
+          console.log(data);
+         sessionStorage.setItem("user", JSON.stringify(data));
       // redirect to new page if login succeeds
-      var url = "http://www.mydomain.com/new-page.html";
-      $( location ).attr("href", url);
+      var url = "/";
+     $( location ).attr("href", url);
       } else {
-          $("#TBD").append("<p id='failedLogin' style='color:red'>Your login did not match. Please try again</p>");
+          $("#signup_forms_container").append("<p id='failedLogin' style='color:red'>Your login did not match. Please try again</p>");
           setTimeout($('#failedLogin').remove(), 2000);
       }   
     }); 
-});
+}
 
 // new user registration ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- --
 
-$("#TBD").click(function(){
-    //gathers user info into object
-    var formData = {
-        fName: $("#TBD").val(),
-        lName: $("#TBD").val(),
-        fullName: $("#TBD").val()+' '+$("#TBD").val(),
-        email: $("#TBD").val(),
-        password: $("#TBD").val(),
-        userId:"",  
+function registerUser() {
+    var formData;
+    var firstPassword = $("#signup_confirm_password").val();
+    var secondPassword = $("#signup_password").val();
+
+    if (firstPassword == secondPassword) {
+        //gathers user info into object
+        formData = {
+            fName: $("#signup_fName").val(),
+            lName: $("#signup_lName").val(),
+            fullName: $("#signup_fName").val() + ' ' + $("#signup_lName").val(),
+            email: $("#signup_email").val(),
+            password: $("#signup_confirm_password").val(),
+            userId: ""
+        }
+    } else {
+        $("#signup_confirm_password").append('<p style="color:red;" id="passwordsNoMatch">passwords did not match<p/>');
+        setTimeout(function () {
+            $('#passwordsNoMatch').remove()
+        }, 2000);
     }
+    console.log(formData);
+
     //posts object to server
-    $.post('/newUser', formData, function(data){
-        if(data){
-         user = data;
-      // redirect to new page if succeeds
-      var url = "http://www.###############.com/new-page.html";
-      $(location).attr("href", url);
-      } else {
-          $("#TBD").append("<p id='failedLogin' style='color:red'>This email is already a registered user.</p>");
-          setTimeout($('#failedLogin').remove(), 2000);
-      }
-    });    
-});
+    $.post('/createUser', formData, function (data) {
+        if (data) {
+            sessionStorage.setItem("user", JSON.stringify(data))
+            //redirect to new page if succeeds
+            var url = "/";
+            $(location).attr("href", url);
+        } else {
+            $("#TBD").append("<p id='failedLogin' style='color:red'>This email is already a registered user.</p>");
+            setTimeout(function () {
+                $('#failedLogin').remove()
+            }, 2000);
+        }
+    });
+
+}
 
 
 // Post question ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- --
 
-$("#TBD").click(function(){
+function submitQ(){
     //gathers user info into object
     var formData = {
         qId: '',
         userId: user.userId,
         userName: user.fullName,
-        subject: $("#TBD").val(),
-        body: $("#TBD").val(),
+        subject: $("#sel1").val(),
+        body: $("#question-body").val(),
         comment:[],
         userLiked:[]
     }
+    console.log(formData);
     //posts object to server
     $.post('/question', formData, function(data){
         if(data){
         //haven't built this function yet !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-         constructQuestion(data);
+        //constructQuestion(data);
+        console.log("question Submitted")
       } else {
           $("#TBD").append("<p id='failedLogin' style='color:red'>Opps, something went wrong</p>");
           setTimeout($('#failedLogin').remove(), 2000);
       }
     });    
-});
+}
 
 
 // Post comment ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
 
-$("#TBD").click(function(){
+$("#submit-comment").click(function(){
     //gathers user info into object
+    
     var formData = {
-        qId: $(this).closest("some elemement with a certain class e.g 'div.questionHeader'").attr('id'),
+        commentId:"",
+        qId: $(this).closest(".question").attr('id'),
         userId: user.userId,
         userName: user.fullName,
-        content: $(this)closest('input').val(),
-        likedCount: 0,
+        content: $(this).closest('textarea').val(),
+        commentCount: 0,
         commentId:"",
     }
     //posts object to server
@@ -91,16 +112,22 @@ $("#TBD").click(function(){
         constructComment(data);
       } else {
           $(this).append("<p id='failedLogin' style='color:red'>Opps, something went wrong</p>");
-          setTimeout($('#failedLogin').remove(), 2000);
+          setTimeout(function(){$('#failedLogin').remove()}, 2000);
       }
     });    
 });
 
-// like a question
+// like a question --- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----- ---- ---- ---- ---- --
 
-$("#TBD").click(function(){
+$("#glyphicon-heart").click(function(){
+    var like = {
+        qId: $(this).closest(".question").attr("id"),
+        commentId: $(this).closest(".comment").attr("id"),
+        userId: user.userId ,
+    }
+    
     //posts object to server
-    $.get('/comment?id='+$(this).closest(".comment").attr("id"), function(data){
+    $.post('/like', like, function(data){
         $(this).closest(".count").text(data);
     });    
 });
